@@ -119,7 +119,7 @@ static inline int mi_prim_access(const char *fpath, int mode) {
 
 static bool unix_detect_overcommit(void) {
   bool os_overcommit = true;
-#if defined(__linux__)
+#if defined(__linux__) && !defined(__ANDROID__)
   int fd = mi_prim_open("/proc/sys/vm/overcommit_memory", O_RDONLY);
 	if (fd >= 0) {
     char buf[32];
