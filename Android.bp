@@ -1,0 +1,85 @@
+//
+// Copyright (C) 2021 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+cc_defaults {
+    name: "mimalloc_defaults",
+    defaults: ["linux_bionic_supported"],
+    cflags: [
+        "-O3",
+        //"-DNDEBUG",
+        "-DMI_DEBUG=3",
+        "-fPIC",
+        "-Wall",
+        "-Wextra",
+        "-fvisibility=hidden",
+        "-ftls-model=initial-exec",
+        "-std=gnu11",
+
+        // From scudo
+        //"-fno-stack-protector",
+        "-fno-emulated-tls",
+    ],
+    include_dirs: [
+        "external/mimalloc/include",
+    ],
+}
+
+lib_srcs = [
+    "src/stats.c",
+    "src/random.c",
+    "src/os.c",
+    "src/bitmap.c",
+    "src/arena.c",
+    "src/segment-cache.c",
+    "src/segment.c",
+    "src/page.c",
+    "src/alloc.c",
+    "src/alloc-aligned.c",
+    "src/alloc-posix.c",
+    "src/heap.c",
+    "src/options.c",
+    "src/init.c",
+]
+
+cc_library {
+    name: "libmimalloc",
+    defaults: ["mimalloc_defaults"],
+    srcs: lib_srcs,
+
+    // Essential library
+    native_coverage: false,
+    ramdisk_available: true,
+    recovery_available: true,
+    host_supported: true,
+    native_bridge_supported: true,
+
+    // Export headers for libc
+    export_include_dirs: ["include"],
+
+    // Remove dependency on libc to break dependency cycle
+    stl: "none",
+    target: {
+        android: {
+            shared: {
+                enabled: false,
+            },
+            system_shared_libs: [],
+        },
+        linux_bionic: {
+            system_shared_libs: [],
+        },
+    },
+}
