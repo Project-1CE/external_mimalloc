@@ -17,10 +17,13 @@
 cc_defaults {
     name: "mimalloc_defaults",
     defaults: ["linux_bionic_supported"],
+    host_supported: true,
+    native_bridge_supported: true,
     cflags: [
         "-O3",
         //"-DNDEBUG",
-        "-DMI_DEBUG=3",
+        //"-DMI_DEBUG=3",
+        "-DMI_SECURE=4",
         "-fPIC",
         "-Wall",
         "-Wextra",
@@ -56,17 +59,14 @@ lib_srcs = [
 
 cc_library {
     name: "libmimalloc",
+    ramdisk_available: true,
+    vendor_ramdisk_available: true,
+    recovery_available: true,
+
     defaults: ["mimalloc_defaults"],
+
     srcs: lib_srcs,
 
-    // Essential library
-    native_coverage: false,
-    ramdisk_available: true,
-    recovery_available: true,
-    host_supported: true,
-    native_bridge_supported: true,
-
-    // Export headers for libc
     export_include_dirs: ["include"],
 
     // Remove dependency on libc to break dependency cycle
@@ -77,9 +77,15 @@ cc_library {
                 enabled: false,
             },
             system_shared_libs: [],
+            header_libs: ["libc_headers"],
         },
         linux_bionic: {
             system_shared_libs: [],
+            header_libs: ["libc_headers"],
         },
     },
+
+    apex_available: [
+        "com.android.runtime",
+    ],
 }
