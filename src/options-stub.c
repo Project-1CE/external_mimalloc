@@ -67,11 +67,7 @@ static mi_option_desc_t options[_mi_option_last] =
   { 32, MI_OPTION(max_warnings) },              // maximum warnings that are output
   { 10, MI_OPTION(max_segment_reclaim)},        // max. percentage of the abandoned segments to be reclaimed per try.
   { 0, MI_OPTION(destroy_on_exit)},             // release all OS memory on process exit; careful with dangling pointer or after-exit frees!
-  #if (MI_INTPTR_SIZE>4)
-  { 1024L * 1024L, MI_OPTION(arena_reserve) },  // reserve memory N KiB at a time (=1GiB) (use `option_get_size`)
-  #else
-  { 128L * 1024L, MI_OPTION(arena_reserve) },
-  #endif
+  { 64L * 1024L, MI_OPTION(arena_reserve) },    // always reserve 64M memory at a time
   { 10, MI_OPTION(arena_purge_mult) },          // purge delay multiplier for arena's
   { 1, MI_OPTION_LEGACY(purge_extend_delay, decommit_extend_delay) },
   { 0, MI_OPTION(abandoned_reclaim_on_free) },  // reclaim an abandoned segment on a free
