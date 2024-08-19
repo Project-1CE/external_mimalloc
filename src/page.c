@@ -969,6 +969,7 @@ static mi_page_t* mi_find_page(mi_heap_t* heap, size_t size, size_t huge_alignme
   if mi_unlikely(req_size > (MI_MEDIUM_OBJ_SIZE_MAX - MI_PADDING_SIZE) || huge_alignment > 0) {
     if mi_unlikely(req_size > MI_MAX_ALLOC_SIZE) {
       _mi_error_message(EOVERFLOW, "allocation request is too large (%zu bytes)\n", req_size);
+      errno = ENOMEM;
       return NULL;
     }
     else {
@@ -1027,6 +1028,7 @@ void* _mi_malloc_generic(mi_heap_t* heap, size_t size, bool zero, size_t huge_al
   if mi_unlikely(page == NULL) { // out of memory
     const size_t req_size = size - MI_PADDING_SIZE;  // correct for padding_size in case of an overflow on `size`
     _mi_error_message(ENOMEM, "unable to allocate memory (%zu bytes)\n", req_size);
+    errno = ENOMEM;
     return NULL;
   }
 

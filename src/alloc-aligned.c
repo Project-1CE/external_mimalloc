@@ -68,6 +68,7 @@ static mi_decl_noinline void* mi_heap_malloc_zero_aligned_at_overalloc(mi_heap_t
 #if MI_DEBUG > 0
       _mi_error_message(EOVERFLOW, "aligned allocation with a very large alignment cannot be used with an alignment offset (size %zu, alignment %zu, offset %zu)\n", size, alignment, offset);
 #endif
+      errno = EINVAL;
       return NULL;
     }
     oversize = (size <= MI_SMALL_SIZE_MAX ? MI_SMALL_SIZE_MAX + 1 /* ensure we use generic malloc path */ : size);
@@ -140,6 +141,7 @@ static mi_decl_noinline void* mi_heap_malloc_zero_aligned_at_generic(mi_heap_t* 
     #if MI_DEBUG > 0
     _mi_error_message(EOVERFLOW, "aligned allocation request is too large (size %zu, alignment %zu)\n", size, alignment);
     #endif
+    errno = ENOMEM;
     return NULL;
   }
 
@@ -173,6 +175,7 @@ static void* mi_heap_malloc_zero_aligned_at(mi_heap_t* const heap, const size_t 
     #if MI_DEBUG > 0
     _mi_error_message(EOVERFLOW, "aligned allocation requires the alignment to be a power-of-two (size %zu, alignment %zu)\n", size, alignment);
     #endif
+    errno = EINVAL;
     return NULL;
   }
 

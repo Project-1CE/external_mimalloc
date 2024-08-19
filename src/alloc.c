@@ -224,7 +224,7 @@ mi_decl_nodiscard mi_decl_restrict void* mi_zalloc(size_t size) mi_attr_noexcept
 
 mi_decl_nodiscard extern inline mi_decl_restrict void* mi_heap_calloc(mi_heap_t* heap, size_t count, size_t size) mi_attr_noexcept {
   size_t total;
-  if (mi_count_size_overflow(count,size,&total)) return NULL;
+  if (mi_count_size_overflow(count,size,&total)) { errno = ENOMEM; return NULL; }
   return mi_heap_zalloc(heap,total);
 }
 
