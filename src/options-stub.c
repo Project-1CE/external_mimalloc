@@ -130,6 +130,9 @@ void mi_option_set(mi_option_t option, long value) {
   mi_assert(desc->option == option);  // index should match the option
   desc->value = value;
 }
+#ifdef MI_really_secure
+void mi_secure_option_set(mi_option_t, long) __attribute__((alias("mi_option_set")));
+#endif
 
 inline void mi_option_set_default(mi_option_t option, long value) {}
 inline void mi_option_set_enabled(mi_option_t option, bool enable) {}

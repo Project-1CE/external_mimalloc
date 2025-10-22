@@ -8,7 +8,11 @@ terms of the MIT license. A copy of the license can be found in the file
 #ifndef MIMALLOC_PRIM_H
 #define MIMALLOC_PRIM_H
 
+#ifdef MI_BIONIC
+#define mi_decl_internal    static
+#else
 #define mi_decl_internal
+#endif
 
 
 // --------------------------------------------------------------------------
@@ -361,6 +365,11 @@ static inline mi_heap_t* mi_prim_get_default_heap(void);
   // See issue #381
   #define MI_TLS_PTHREAD
 #endif
+#endif
+
+// TODO: Migrate to platform TLS slot
+#if defined(__BIONIC__) || defined(MI_BIONIC)
+  #define MI_TLS_PTHREAD
 #endif
 
 

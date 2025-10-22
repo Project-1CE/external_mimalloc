@@ -480,7 +480,9 @@ static inline void mi_lock_done(mi_lock_t* lock) {
 
 #elif defined(MI_USE_PTHREADS)
 
+#ifndef MI_BIONIC
 void _mi_error_message(int err, const char* fmt, ...);
+#endif
 
 #define mi_lock_t  pthread_mutex_t
 
@@ -489,9 +491,11 @@ static inline bool mi_lock_try_acquire(mi_lock_t* lock) {
 }
 static inline void mi_lock_acquire(mi_lock_t* lock) {
   const int err = pthread_mutex_lock(lock);
+#ifndef MI_BIONIC
   if (err != 0) {
     _mi_error_message(err, "internal error: lock cannot be acquired\n");
   }
+#endif
 }
 static inline void mi_lock_release(mi_lock_t* lock) {
   pthread_mutex_unlock(lock);

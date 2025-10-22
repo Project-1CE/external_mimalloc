@@ -41,6 +41,9 @@ mi_decl_nodiscard size_t mi_malloc_usable_size(const void *p) mi_attr_noexcept {
   // if (!mi_is_in_heap_region(p)) return 0;
   return mi_usable_size(p);
 }
+#ifdef MI_really_secure
+mi_decl_nodiscard size_t mi_secure_malloc_usable_size(const void *) mi_attr_noexcept __attribute__((alias("mi_malloc_usable_size")));
+#endif
 
 mi_decl_nodiscard size_t mi_malloc_good_size(size_t size) mi_attr_noexcept {
   return mi_good_size(size);
@@ -65,16 +68,25 @@ int mi_posix_memalign(void** p, size_t alignment, size_t size) mi_attr_noexcept 
   *p = q;
   return 0;
 }
+#ifdef MI_really_secure
+int mi_secure_posix_memalign(void**, size_t, size_t) mi_attr_noexcept __attribute__((alias("mi_posix_memalign")));
+#endif
 
 mi_decl_nodiscard mi_decl_restrict void* mi_memalign(size_t alignment, size_t size) mi_attr_noexcept {
   void* p = mi_malloc_aligned(size, alignment);
   mi_assert_internal(((uintptr_t)p % alignment) == 0);
   return p;
 }
+#ifdef MI_really_secure
+mi_decl_nodiscard mi_decl_restrict void* mi_secure_memalign(size_t, size_t) mi_attr_noexcept __attribute__((alias("mi_memalign")));
+#endif
 
 mi_decl_nodiscard mi_decl_restrict void* mi_valloc(size_t size) mi_attr_noexcept {
   return mi_memalign( _mi_os_page_size(), size );
 }
+#ifdef MI_really_secure
+mi_decl_nodiscard void* mi_secure_valloc(size_t) mi_attr_noexcept __attribute__((alias("mi_valloc")));
+#endif
 
 mi_decl_nodiscard mi_decl_restrict void* mi_pvalloc(size_t size) mi_attr_noexcept {
   size_t psize = _mi_os_page_size();
@@ -82,6 +94,9 @@ mi_decl_nodiscard mi_decl_restrict void* mi_pvalloc(size_t size) mi_attr_noexcep
   size_t asize = _mi_align_up(size, psize);
   return mi_malloc_aligned(asize, psize);
 }
+#ifdef MI_really_secure
+mi_decl_nodiscard mi_decl_restrict void* mi_secure_pvalloc(size_t) mi_attr_noexcept __attribute__((alias("mi_pvalloc")));
+#endif
 
 mi_decl_nodiscard mi_decl_restrict void* mi_aligned_alloc(size_t alignment, size_t size) mi_attr_noexcept {
   // C11 requires the size to be an integral multiple of the alignment, see <https://en.cppreference.com/w/c/memory/aligned_alloc>.
@@ -98,6 +113,9 @@ mi_decl_nodiscard mi_decl_restrict void* mi_aligned_alloc(size_t alignment, size
   mi_assert_internal(((uintptr_t)p % alignment) == 0);
   return p;
 }
+#ifdef MI_really_secure
+mi_decl_nodiscard mi_decl_restrict void* mi_secure_aligned_alloc(size_t, size_t) mi_attr_noexcept __attribute__((alias("mi_aligned_alloc")));
+#endif
 
 mi_decl_nodiscard void* mi_reallocarray( void* p, size_t count, size_t size ) mi_attr_noexcept {  // BSD
   void* newp = mi_reallocn(p,count,size);

@@ -190,6 +190,9 @@ void mi_heap_collect(mi_heap_t* heap, bool force) mi_attr_noexcept {
 void mi_collect(bool force) mi_attr_noexcept {
   mi_heap_collect(mi_prim_get_default_heap(), force);
 }
+#ifdef MI_really_secure
+void mi_secure_collect(bool force) mi_attr_noexcept __attribute__((alias("mi_collect")));
+#endif
 
 
 /* -----------------------------------------------------------

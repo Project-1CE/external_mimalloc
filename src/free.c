@@ -172,6 +172,9 @@ void mi_free(void* p) mi_attr_noexcept
     mi_free_generic_mt(page, segment, p);
   }
 }
+#ifdef MI_really_secure
+void mi_secure_free(void*) mi_attr_noexcept __attribute__((alias("mi_free")));
+#endif
 
 // return true if successful
 bool _mi_free_delayed_block(mi_block_t* block) {

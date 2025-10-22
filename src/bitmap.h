@@ -20,7 +20,11 @@ between the fields. (This is used in arena allocation)
 #ifndef MI_BITMAP_H
 #define MI_BITMAP_H
 
+#ifdef MI_BIONIC
+#define mi_decl_internal    static
+#else
 #define mi_decl_internal
+#endif
 
 /* -----------------------------------------------------------
   Bitmap definition

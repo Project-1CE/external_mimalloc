@@ -120,7 +120,7 @@ mi_decl_internal void        _mi_verbose_message(const char* fmt, ...);
 mi_decl_internal void        _mi_trace_message(const char* fmt, ...);
 mi_decl_internal void        _mi_options_init(void);
 mi_decl_internal long        _mi_option_get_fast(mi_option_t option);
-void        _mi_error_message(int err, const char* fmt, ...);
+mi_decl_internal void        _mi_error_message(int err, const char* fmt, ...);
 
 // random.c
 mi_decl_internal void        _mi_random_init(mi_random_ctx_t* ctx);
