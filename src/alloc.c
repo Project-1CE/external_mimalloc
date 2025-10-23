@@ -452,7 +452,7 @@ use a C compiler we cannot throw a `bad_alloc` exception
 but we call `exit` instead (i.e. not returning).
 -------------------------------------------------------*/
 
-#ifdef __cplusplus
+#if defined(__cplusplus) && !defined(__BIONIC__)
 #include <new>
 static bool mi_try_new_handler(bool nothrow) {
   #if defined(_MSC_VER) || (__cplusplus >= 201103L)

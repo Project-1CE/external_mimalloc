@@ -28,7 +28,7 @@ terms of the MIT license. A copy of the license can be found in the file
 // instead of passing the memory order as a parameter.
 // -----------------------------------------------------------------------------------------------
 
-#if defined(__cplusplus)
+#if defined(__cplusplus) && !defined(__BIONIC__)
 // Use C++ atomics
 #include <atomic>
 #define  _Atomic(tp)              std::atomic<tp>
@@ -52,7 +52,7 @@ terms of the MIT license. A copy of the license can be found in the file
 #include <stdatomic.h>
 #define  mi_atomic(name)          atomic_##name
 #define  mi_memory_order(name)    memory_order_##name
-#if (__STDC_VERSION__ >= 201710L) // c17, see issue #735
+#if (__STDC_VERSION__ >= 201710L) || (__cplusplus >= 202002L) // c17, see issue #735
  #define MI_ATOMIC_VAR_INIT(x)    x
 #elif !defined(ATOMIC_VAR_INIT)
  #define MI_ATOMIC_VAR_INIT(x)    x
@@ -358,7 +358,7 @@ typedef _Atomic(uintptr_t) mi_atomic_guard_t;
 // Yield
 // ----------------------------------------------------------------------
 
-#if defined(__cplusplus)
+#if defined(__cplusplus) && !defined(__BIONIC__)
 #include <thread>
 static inline void mi_atomic_yield(void) {
   std::this_thread::yield();
@@ -503,7 +503,7 @@ static inline void mi_lock_done(mi_lock_t* lock) {
   pthread_mutex_destroy(lock);
 }
 
-#elif defined(__cplusplus)
+#elif defined(__cplusplus) && !defined(__BIONIC__)
 
 #include <mutex>
 #define mi_lock_t  std::mutex

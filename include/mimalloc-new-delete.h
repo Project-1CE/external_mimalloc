@@ -18,7 +18,7 @@ terms of the MIT license. A copy of the license can be found in the file
 // can be more performant than the standard new-delete operations.
 // See <https://en.cppreference.com/w/cpp/memory/new/operator_new>
 // ---------------------------------------------------------------------------
-#if defined(__cplusplus)
+#if defined(__cplusplus) && !defined(__BIONIC__)
   #include <new>
   #include <mimalloc.h>
 

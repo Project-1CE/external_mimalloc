@@ -31,8 +31,8 @@ const mi_page_t _mi_page_empty = {
   #if (MI_PADDING || MI_ENCODE_FREELIST)
   { 0, 0 },
   #endif
-  MI_ATOMIC_VAR_INIT(0), // xthread_free
-  MI_ATOMIC_VAR_INIT(0), // xheap
+  MI_ATOMIC_VAR_INIT((mi_thread_free_t)0), // xthread_free
+  MI_ATOMIC_VAR_INIT((uintptr_t)0), // xheap
   NULL, NULL
   , { 0 }  // padding
 };
