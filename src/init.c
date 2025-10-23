@@ -13,7 +13,11 @@ terms of the MIT license. A copy of the license can be found in the file
 
 
 // Empty page used to initialize the small free pages array
+#ifndef MI_really_secure
 const mi_page_t _mi_page_empty = {
+#else
+const mi_page_t _mi_secure_page_empty = {
+#endif
   0,
   false, false, false, false,
   0,       // capacity
@@ -37,7 +41,11 @@ const mi_page_t _mi_page_empty = {
   , { 0 }  // padding
 };
 
+#ifndef MI_really_secure
 #define MI_PAGE_EMPTY() ((mi_page_t*)&_mi_page_empty)
+#else
+#define MI_PAGE_EMPTY() ((mi_page_t*)&_mi_secure_page_empty)
+#endif
 
 #if (MI_SMALL_WSIZE_MAX==128)
 #if (MI_PADDING>0) && (MI_INTPTR_SIZE >= 8)
@@ -108,7 +116,11 @@ const mi_page_t _mi_page_empty = {
 // may lead to allocation itself on some platforms)
 // --------------------------------------------------------
 
+#ifndef MI_really_secure
 mi_decl_cache_align const mi_heap_t _mi_heap_empty = {
+#else
+mi_decl_cache_align const mi_heap_t _mi_secure_heap_empty = {
+#endif
   NULL,
   MI_ATOMIC_VAR_INIT(NULL),
   0,                // tid
@@ -146,18 +158,32 @@ mi_threadid_t _mi_thread_id(void) mi_attr_noexcept {
 }
 
 // the thread-local default heap for allocation
+#if !defined(MI_TLS_SLOT) && !defined(MI_TLS_PTHREAD)
 mi_decl_thread mi_heap_t* _mi_heap_default = (mi_heap_t*)&_mi_heap_empty;
+#endif
 
+#ifndef MI_really_secure
 extern mi_decl_hidden mi_heap_t _mi_heap_main;
+#else
+extern mi_decl_hidden mi_heap_t _mi_secure_heap_main;
+#endif
 
 static mi_decl_cache_align mi_tld_t tld_main = {
   0, false,
+#ifndef MI_really_secure
   &_mi_heap_main, & _mi_heap_main,
+#else
+  &_mi_secure_heap_main, & _mi_secure_heap_main,
+#endif
   { MI_SEGMENT_SPAN_QUEUES_EMPTY, 0, 0, 0, 0, 0, &mi_subproc_default, &tld_main.stats }, // segments
   { MI_STAT_VERSION, MI_STATS_NULL }       // stats
 };
 
+#ifndef MI_really_secure
 mi_decl_cache_align mi_heap_t _mi_heap_main = {
+#else
+mi_decl_cache_align mi_heap_t _mi_secure_heap_main = {
+#endif
   &tld_main,
   MI_ATOMIC_VAR_INIT(NULL),
   0,                // thread id
@@ -178,9 +204,17 @@ mi_decl_cache_align mi_heap_t _mi_heap_main = {
   MI_PAGE_QUEUES_EMPTY
 };
 
+#if defined(MI_TLS_RECURSE_GUARD) || (MI_DEBUG >= 3)
 bool _mi_process_is_initialized = false;  // set to `true` in `mi_process_init`.
+#else
+static bool _mi_process_is_initialized = false;  // set to `true` in `mi_process_init`.
+#endif
 
+#ifndef MI_really_secure
 mi_stats_t _mi_stats_main = { MI_STAT_VERSION, MI_STATS_NULL };
+#else
+mi_stats_t _mi_secure_stats_main = { MI_STAT_VERSION, MI_STATS_NULL };
+#endif
 
 #if MI_GUARDED
 mi_decl_export void mi_heap_guarded_set_sample_rate(mi_heap_t* heap, size_t sample_rate, size_t seed) {
@@ -221,6 +255,7 @@ void _mi_heap_guarded_init(mi_heap_t* heap) {
 #endif
 
 
+#ifndef MI_really_secure
 static void mi_heap_main_init(void) {
   if (_mi_heap_main.cookie == 0) {
     _mi_heap_main.thread_id = _mi_thread_id();
@@ -243,6 +278,30 @@ mi_heap_t* _mi_heap_main_get(void) {
   mi_heap_main_init();
   return &_mi_heap_main;
 }
+#else
+static void mi_heap_main_init(void) {
+  if (_mi_secure_heap_main.cookie == 0) {
+    _mi_secure_heap_main.thread_id = _mi_thread_id();
+    _mi_secure_heap_main.cookie = 1;
+    #if defined(_WIN32) && !defined(MI_SHARED_LIB)
+      _mi_random_init_weak(&_mi_secure_heap_main.random);    // prevent allocation failure during bcrypt dll initialization with static linking
+    #else
+      _mi_random_init(&_mi_secure_heap_main.random);
+    #endif
+    _mi_secure_heap_main.cookie  = _mi_heap_random_next(&_mi_secure_heap_main);
+    _mi_secure_heap_main.keys[0] = _mi_heap_random_next(&_mi_secure_heap_main);
+    _mi_secure_heap_main.keys[1] = _mi_heap_random_next(&_mi_secure_heap_main);
+    mi_lock_init(&mi_subproc_default.abandoned_os_lock);
+    mi_lock_init(&mi_subproc_default.abandoned_os_visit_lock);
+    _mi_heap_guarded_init(&_mi_secure_heap_main);
+  }
+}
+
+mi_heap_t* _mi_heap_main_get(void) {
+  mi_heap_main_init();
+  return &_mi_secure_heap_main;
+}
+#endif
 
 /* -----------------------------------------------------------
   Sub process
@@ -381,7 +440,11 @@ static bool _mi_thread_heap_init(void) {
     // mi_assert_internal(_mi_heap_main.thread_id != 0);  // can happen on freeBSD where alloc is called before any initialization
     // the main heap is statically allocated
     mi_heap_main_init();
+#ifndef MI_really_secure
     _mi_heap_set_default_direct(&_mi_heap_main);
+#else
+    _mi_heap_set_default_direct(&_mi_secure_heap_main);
+#endif
     //mi_assert_internal(_mi_heap_default->tld->heap_backing == mi_prim_get_default_heap());
   }
   else {
@@ -412,7 +475,11 @@ static bool _mi_thread_heap_done(mi_heap_t* heap) {
   if (!mi_heap_is_initialized(heap)) return true;
 
   // reset default heap
+#ifndef MI_really_secure
   _mi_heap_set_default_direct(_mi_is_main_thread() ? &_mi_heap_main : (mi_heap_t*)&_mi_heap_empty);
+#else
+  _mi_heap_set_default_direct(_mi_is_main_thread() ? &_mi_secure_heap_main : (mi_heap_t*)&_mi_secure_heap_empty);
+#endif
 
   // switch to backing heap
   heap = heap->tld->heap_backing;
@@ -432,7 +499,11 @@ static bool _mi_thread_heap_done(mi_heap_t* heap) {
   mi_assert_internal(mi_heap_is_backing(heap));
 
   // collect if not the main thread
+#ifndef MI_really_secure
   if (heap != &_mi_heap_main) {
+#else
+  if (heap != &_mi_secure_heap_main) {
+#endif
     _mi_heap_collect_abandon(heap);
   }
 
@@ -440,7 +511,11 @@ static bool _mi_thread_heap_done(mi_heap_t* heap) {
   _mi_stats_done(&heap->tld->stats);
 
   // free if not the main thread
+#ifndef MI_really_secure
   if (heap != &_mi_heap_main) {
+#else
+  if (heap != &_mi_secure_heap_main) {
+#endif
     // the following assertion does not always hold for huge segments as those are always treated
     // as abondened: one may allocate it in one thread, but deallocate in another in which case
     // the count can be too large or negative. todo: perhaps not count huge segments? see issue #363
@@ -482,13 +557,23 @@ static void mi_process_setup_auto_thread_done(void) {
   if (tls_initialized) return;
   tls_initialized = true;
   _mi_prim_thread_init_auto_done();
+#ifndef MI_really_secure
   _mi_heap_set_default_direct(&_mi_heap_main);
+#else
+  _mi_heap_set_default_direct(&_mi_secure_heap_main);
+#endif
 }
 
 
+#ifndef MI_really_secure
 bool _mi_is_main_thread(void) {
   return (_mi_heap_main.thread_id==0 || _mi_heap_main.thread_id == _mi_thread_id());
 }
+#else
+bool _mi_is_main_thread(void) {
+  return (_mi_secure_heap_main.thread_id==0 || _mi_secure_heap_main.thread_id == _mi_thread_id());
+}
+#endif
 
 static _Atomic(size_t) thread_count = MI_ATOMIC_VAR_INIT(1);
 
@@ -507,7 +592,11 @@ void mi_thread_init(void) mi_attr_noexcept
   //  fiber/pthread key to a non-zero value, ensuring `_mi_thread_done` is called)
   if (_mi_thread_heap_init()) return;  // returns true if already initialized
 
+#ifndef MI_really_secure
   _mi_stat_increase(&_mi_stats_main.threads, 1);
+#else
+  _mi_stat_increase(&_mi_secure_stats_main.threads, 1);
+#endif
   mi_atomic_increment_relaxed(&thread_count);
   //_mi_verbose_message("thread init: 0x%zx\n", _mi_thread_id());
 }
@@ -531,7 +620,11 @@ void _mi_thread_done(mi_heap_t* heap)
 
   // adjust stats
   mi_atomic_decrement_relaxed(&thread_count);
+#ifndef MI_really_secure
   _mi_stat_decrease(&_mi_stats_main.threads, 1);
+#else
+  _mi_stat_decrease(&_mi_secure_stats_main.threads, 1);
+#endif
 
   // check thread-id as on Windows shutdown with FLS the main (exit) thread may call this on thread-local heaps...
   if (heap->thread_id != _mi_thread_id()) return;
@@ -598,7 +691,11 @@ void _mi_auto_process_init(void) {
   }
 
   // reseed random
+#ifndef MI_really_secure
   _mi_random_reinit_if_weak(&_mi_heap_main.random);
+#else
+  _mi_random_reinit_if_weak(&_mi_secure_heap_main.random);
+#endif
 }
 
 #if defined(_WIN32) && (defined(_M_IX86) || defined(_M_X64))
@@ -704,7 +801,11 @@ void mi_cdecl mi_process_done(void) mi_attr_noexcept {
     mi_stats_print(NULL);
   }
   _mi_allocator_done();
+#ifndef MI_really_secure
   _mi_verbose_message("process done: 0x%zx\n", _mi_heap_main.thread_id);
+#else
+  _mi_verbose_message("process done: 0x%zx\n", _mi_secure_heap_main.thread_id);
+#endif
   os_preloading = true; // don't call the C runtime anymore
 }
 

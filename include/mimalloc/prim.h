@@ -278,7 +278,9 @@ static inline void mi_prim_tls_slot_set(size_t slot, void* value) mi_attr_noexce
 
 // defined in `init.c`; do not use these directly
 extern mi_decl_hidden mi_decl_thread mi_heap_t* _mi_heap_default;  // default heap to allocate from
+#if defined(MI_TLS_RECURSE_GUARD)
 extern mi_decl_hidden bool _mi_process_is_initialized;             // has mi_process_init been called?
+#endif
 
 static inline mi_threadid_t _mi_prim_thread_id(void) mi_attr_noexcept;
 
@@ -411,11 +413,19 @@ static inline mi_heap_t* mi_prim_get_default_heap(void) {
 
 #elif defined(MI_TLS_PTHREAD)
 
+#ifndef MI_really_secure
 extern mi_decl_hidden pthread_key_t _mi_heap_default_key;
 static inline mi_heap_t* mi_prim_get_default_heap(void) {
   mi_heap_t* heap = (mi_unlikely(_mi_heap_default_key == (pthread_key_t)(-1)) ? _mi_heap_main_get() : (mi_heap_t*)pthread_getspecific(_mi_heap_default_key));
   return (mi_unlikely(heap == NULL) ? (mi_heap_t*)&_mi_heap_empty : heap);
 }
+#else
+extern mi_decl_hidden pthread_key_t _mi_secure_heap_default_key;
+static inline mi_heap_t* mi_prim_get_default_heap(void) {
+  mi_heap_t* heap = (mi_unlikely(_mi_secure_heap_default_key == (pthread_key_t)(-1)) ? _mi_heap_main_get() : (mi_heap_t*)pthread_getspecific(_mi_secure_heap_default_key));
+  return (mi_unlikely(heap == NULL) ? (mi_heap_t*)&_mi_secure_heap_empty : heap);
+}
+#endif
 
 #else // default using a thread local variable; used on most platforms.
 

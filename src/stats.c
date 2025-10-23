@@ -19,10 +19,17 @@ terms of the MIT license. A copy of the license can be found in the file
   Statistics operations
 ----------------------------------------------------------- */
 
+#ifndef MI_really_secure
 static bool mi_is_in_main(void* stat) {
   return ((uint8_t*)stat >= (uint8_t*)&_mi_stats_main
          && (uint8_t*)stat < ((uint8_t*)&_mi_stats_main + sizeof(mi_stats_t)));
 }
+#else
+static bool mi_is_in_main(void* stat) {
+  return ((uint8_t*)stat >= (uint8_t*)&_mi_secure_stats_main
+         && (uint8_t*)stat < ((uint8_t*)&_mi_secure_stats_main + sizeof(mi_stats_t)));
+}
+#endif
 
 static void mi_stat_update(mi_stat_count_t* stat, int64_t amount) {
   if (amount == 0) return;
@@ -379,6 +386,7 @@ static mi_stats_t* mi_stats_get_default(void) {
   return &heap->tld->stats;
 }
 
+#ifndef MI_really_secure
 static void mi_stats_merge_from(mi_stats_t* stats) {
   if (stats != &_mi_stats_main) {
     mi_stats_add(&_mi_stats_main, stats);
@@ -392,6 +400,21 @@ void mi_stats_reset(void) mi_attr_noexcept {
   memset(&_mi_stats_main, 0, sizeof(mi_stats_t));
   if (mi_process_start == 0) { mi_process_start = _mi_clock_start(); };
 }
+#else
+static void mi_stats_merge_from(mi_stats_t* stats) {
+  if (stats != &_mi_secure_stats_main) {
+    mi_stats_add(&_mi_secure_stats_main, stats);
+    memset(stats, 0, sizeof(mi_stats_t));
+  }
+}
+
+void mi_stats_reset(void) mi_attr_noexcept {
+  mi_stats_t* stats = mi_stats_get_default();
+  if (stats != &_mi_secure_stats_main) { memset(stats, 0, sizeof(mi_stats_t)); }
+  memset(&_mi_secure_stats_main, 0, sizeof(mi_stats_t));
+  if (mi_process_start == 0) { mi_process_start = _mi_clock_start(); };
+}
+#endif
 
 void mi_stats_merge(void) mi_attr_noexcept {
   mi_stats_merge_from( mi_stats_get_default() );
@@ -407,7 +430,11 @@ void _mi_stats_done(mi_stats_t* stats) {  // called from `mi_thread_done`
 
 void mi_stats_print_out(mi_output_fun* out, void* arg) mi_attr_noexcept {
   mi_stats_merge_from(mi_stats_get_default());
+#ifndef MI_really_secure
   _mi_stats_print(&_mi_stats_main, out, arg);
+#else
+  _mi_stats_print(&_mi_secure_stats_main, out, arg);
+#endif
 }
 
 void mi_stats_print(void* out) mi_attr_noexcept {
@@ -453,8 +480,13 @@ mi_decl_export void mi_process_info(size_t* elapsed_msecs, size_t* user_msecs, s
   mi_process_info_t pinfo;
   _mi_memzero_var(pinfo);
   pinfo.elapsed        = _mi_clock_end(mi_process_start);
+#ifndef MI_really_secure
   pinfo.current_commit = (size_t)(mi_atomic_loadi64_relaxed((_Atomic(int64_t)*)&_mi_stats_main.committed.current));
   pinfo.peak_commit    = (size_t)(mi_atomic_loadi64_relaxed((_Atomic(int64_t)*)&_mi_stats_main.committed.peak));
+#else
+  pinfo.current_commit = (size_t)(mi_atomic_loadi64_relaxed((_Atomic(int64_t)*)&_mi_secure_stats_main.committed.current));
+  pinfo.peak_commit    = (size_t)(mi_atomic_loadi64_relaxed((_Atomic(int64_t)*)&_mi_secure_stats_main.committed.peak));
+#endif
   pinfo.current_rss    = pinfo.current_commit;
   pinfo.peak_rss       = pinfo.peak_commit;
   pinfo.utime          = 0;
@@ -482,7 +514,11 @@ void mi_stats_get(size_t stats_size, mi_stats_t* stats) mi_attr_noexcept {
   if (stats == NULL || stats_size == 0) return;
   _mi_memzero(stats, stats_size);
   const size_t size = (stats_size > sizeof(mi_stats_t) ? sizeof(mi_stats_t) : stats_size);
+#ifndef MI_really_secure
   _mi_memcpy(stats, &_mi_stats_main, size);
+#else
+  _mi_memcpy(stats, &_mi_secure_stats_main, size);
+#endif
   stats->version = MI_STAT_VERSION;
 }
 
@@ -616,7 +652,11 @@ char* mi_stats_get_json(size_t output_size, char* output_buf) mi_attr_noexcept {
   mi_heap_buf_print(&hbuf, "  },\n");
 
   // statistics
+#ifndef MI_really_secure
   mi_stats_t* stats = &_mi_stats_main;
+#else
+  mi_stats_t* stats = &_mi_secure_stats_main;
+#endif
   MI_STAT_FIELDS()
 
   // size bins

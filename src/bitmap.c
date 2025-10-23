@@ -279,7 +279,11 @@ rollback:
       newmap = (map & ~initial_mask);
     } while (!mi_atomic_cas_strong_acq_rel(field, &map, newmap));
   }
+#ifndef MI_really_secure
   mi_stat_counter_increase(_mi_stats_main.arena_rollback_count,1);
+#else
+  mi_stat_counter_increase(_mi_secure_stats_main.arena_rollback_count,1);
+#endif
   // retry? (we make a recursive call instead of goto to be able to use const declarations)
   if (retries <= 2) {
     return mi_bitmap_try_find_claim_field_across(bitmap, bitmap_fields, idx, count, retries+1, bitmap_idx);

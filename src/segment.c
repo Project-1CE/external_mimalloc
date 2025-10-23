@@ -499,7 +499,11 @@ static bool mi_segment_commit(mi_segment_t* segment, uint8_t* p, size_t size) {
     bool is_zero = false;
     mi_commit_mask_t cmask;
     mi_commit_mask_create_intersect(&segment->commit_mask, &mask, &cmask);
+#ifndef MI_really_secure
     _mi_stat_decrease(&_mi_stats_main.committed, _mi_commit_mask_committed_size(&cmask, MI_SEGMENT_SIZE)); // adjust for overlap
+#else
+    _mi_stat_decrease(&_mi_secure_stats_main.committed, _mi_commit_mask_committed_size(&cmask, MI_SEGMENT_SIZE)); // adjust for overlap
+#endif
     if (!_mi_os_commit(start, full_size, &is_zero)) return false;
     mi_commit_mask_set(&segment->commit_mask, &mask);
   }
@@ -541,7 +545,11 @@ static bool mi_segment_purge(mi_segment_t* segment, uint8_t* p, size_t size) {
     if (decommitted) {
       mi_commit_mask_t cmask;
       mi_commit_mask_create_intersect(&segment->commit_mask, &mask, &cmask);
+#ifndef MI_really_secure
       _mi_stat_increase(&_mi_stats_main.committed, full_size - _mi_commit_mask_committed_size(&cmask, MI_SEGMENT_SIZE)); // adjust for double counting
+#else
+      _mi_stat_increase(&_mi_secure_stats_main.committed, full_size - _mi_commit_mask_committed_size(&cmask, MI_SEGMENT_SIZE)); // adjust for double counting
+#endif
       mi_commit_mask_clear(&segment->commit_mask, &mask);
     }
   }
