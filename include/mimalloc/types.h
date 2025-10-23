@@ -8,6 +8,8 @@ terms of the MIT license. A copy of the license can be found in the file
 #ifndef MIMALLOC_TYPES_H
 #define MIMALLOC_TYPES_H
 
+#define mi_decl_internal
+
 // --------------------------------------------------------------------------
 // This file contains the main type definitions for mimalloc:
 // mi_heap_t      : all data for a thread-local heap, contains
@@ -659,11 +661,11 @@ struct mi_tld_s {
 #endif
 
 // add to stat keeping track of the peak
-void _mi_stat_increase(mi_stat_count_t* stat, size_t amount);
-void _mi_stat_decrease(mi_stat_count_t* stat, size_t amount);
-void _mi_stat_adjust_decrease(mi_stat_count_t* stat, size_t amount);
+mi_decl_internal void _mi_stat_increase(mi_stat_count_t* stat, size_t amount);
+mi_decl_internal void _mi_stat_decrease(mi_stat_count_t* stat, size_t amount);
+mi_decl_internal void _mi_stat_adjust_decrease(mi_stat_count_t* stat, size_t amount);
 // counters can just be increased
-void _mi_stat_counter_increase(mi_stat_counter_t* stat, size_t amount);
+mi_decl_internal void _mi_stat_counter_increase(mi_stat_counter_t* stat, size_t amount);
 
 #if (MI_STAT)
 #define mi_stat_increase(stat,amount)         _mi_stat_increase( &(stat), amount)

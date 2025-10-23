@@ -14,11 +14,11 @@ terms of the MIT license. A copy of the license can be found in the file
 #endif
 
 // Minimal exports for arena-abandoned.
-size_t      mi_arena_id_index(mi_arena_id_t id);
-mi_arena_t* mi_arena_from_index(size_t idx);
-size_t      mi_arena_get_count(void);
-void*       mi_arena_block_start(mi_arena_t* arena, mi_bitmap_index_t bindex);
-bool        mi_arena_memid_indices(mi_memid_t memid, size_t* arena_index, mi_bitmap_index_t* bitmap_index);
+mi_decl_internal size_t      mi_arena_id_index(mi_arena_id_t id);
+mi_decl_internal mi_arena_t* mi_arena_from_index(size_t idx);
+mi_decl_internal size_t      mi_arena_get_count(void);
+mi_decl_internal void*       mi_arena_block_start(mi_arena_t* arena, mi_bitmap_index_t bindex);
+mi_decl_internal bool        mi_arena_memid_indices(mi_memid_t memid, size_t* arena_index, mi_bitmap_index_t* bitmap_index);
 
 /* -----------------------------------------------------------
   Abandoned blocks/segments:
