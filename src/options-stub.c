@@ -49,7 +49,7 @@ static mi_option_desc_t options[_mi_option_last] =
   // some of the following options are experimental and not all combinations are allowed.
   { 1, MI_OPTION(eager_commit) },               // commit per segment directly (4MiB)  (but see also `eager_commit_delay`)
   { 2, MI_OPTION_LEGACY(arena_eager_commit,eager_region_commit) }, // eager commit arena's? 2 is used to enable this only on an OS that has overcommit (i.e. linux)
-  { 1, MI_OPTION_LEGACY(purge_decommits,reset_decommits) },        // purge decommits memory (instead of reset) (note: on linux this uses MADV_DONTNEED for decommit)
+  { 0, MI_OPTION_LEGACY(purge_decommits,reset_decommits) },        // purge decommits memory (instead of reset) (note: on linux this uses MADV_DONTNEED for decommit)
   { 0, MI_OPTION_LEGACY(allow_large_os_pages,large_os_pages) },    // use large OS pages, use only with eager commit to prevent fragmentation of VMA's
   { 0, MI_OPTION(reserve_huge_os_pages) },      // per 1GiB huge pages
   {-1, MI_OPTION(reserve_huge_os_pages_at) },   // reserve huge pages at node N
