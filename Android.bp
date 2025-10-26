@@ -115,10 +115,7 @@ cc_library {
     name: "libmimalloc-secure",
     defaults: ["mimalloc_defaults"],
     srcs: ["src/android-static.c"],
-    cflags: [
-        "-DMI_SECURE=4",
-        "-DMI_PADDING=0",
-    ],
+    cflags: ["-DMI_SECURE=4"],
 
     // Essential library
     native_coverage: false,
