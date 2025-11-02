@@ -16,6 +16,9 @@
 
 #define MI_BIONIC 1
 
+/* use smaller segments to accommodate smaller arenas */
+#define MI_SEGMENT_SHIFT (7 + MI_SEGMENT_SLICE_SHIFT)
+
 #include "mimalloc.h"
 #include "mimalloc/internal.h"
 
