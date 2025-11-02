@@ -9,15 +9,9 @@ terms of the MIT license. A copy of the license can be found in the file
 #include "mimalloc/atomic.h"
 #include "mimalloc/prim.h"
 
-#ifndef MI_really_secure
 #define mi_os_stat_increase(stat,amount)      _mi_stat_increase(&_mi_stats_main.stat, amount)
 #define mi_os_stat_decrease(stat,amount)      _mi_stat_decrease(&_mi_stats_main.stat, amount)
 #define mi_os_stat_counter_increase(stat,inc) _mi_stat_counter_increase(&_mi_stats_main.stat, inc)
-#else
-#define mi_os_stat_increase(stat,amount)      _mi_stat_increase(&_mi_secure_stats_main.stat, amount)
-#define mi_os_stat_decrease(stat,amount)      _mi_stat_decrease(&_mi_secure_stats_main.stat, amount)
-#define mi_os_stat_counter_increase(stat,inc) _mi_stat_counter_increase(&_mi_secure_stats_main.stat, inc)
-#endif
 
 /* -----------------------------------------------------------
   Initialization.

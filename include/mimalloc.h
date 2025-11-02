@@ -62,11 +62,7 @@ terms of the MIT license. A copy of the license can be found in the file
 #elif defined(__GNUC__)                 // includes clang and icc
   #if defined(MI_BIONIC)
     #define mi_decl_export              static
-    #ifdef MI_really_secure
-      #define mi_decl_public            static
-    #else
-      #define mi_decl_public
-    #endif
+    #define mi_decl_public
   #elif defined(MI_SHARED_LIB) && defined(MI_SHARED_LIB_EXPORT)
     #define mi_decl_export              __attribute__((visibility("default")))
     #define mi_decl_public              __attribute__((visibility("default")))
@@ -469,19 +465,6 @@ mi_decl_nodiscard mi_decl_export void* mi_new_reallocn(void* p, size_t newcount,
 
 mi_decl_nodiscard mi_decl_export mi_decl_restrict void* mi_heap_alloc_new(mi_heap_t* heap, size_t size)                mi_attr_malloc mi_attr_alloc_size(2);
 mi_decl_nodiscard mi_decl_export mi_decl_restrict void* mi_heap_alloc_new_n(mi_heap_t* heap, size_t count, size_t size) mi_attr_malloc mi_attr_alloc_size2(2, 3);
-
-mi_decl_nodiscard mi_decl_restrict void* mi_secure_malloc(size_t size)  mi_attr_noexcept mi_attr_malloc mi_attr_alloc_size(1);
-mi_decl_nodiscard mi_decl_restrict void* mi_secure_calloc(size_t count, size_t size)  mi_attr_noexcept mi_attr_malloc mi_attr_alloc_size2(1,2);
-mi_decl_nodiscard void* mi_secure_realloc(void* p, size_t newsize)      mi_attr_noexcept mi_attr_alloc_size(2);
-void mi_secure_free(void* p) mi_attr_noexcept;
-int mi_secure_posix_memalign(void** p, size_t alignment, size_t size)   mi_attr_noexcept;
-mi_decl_nodiscard mi_decl_restrict void* mi_secure_memalign(size_t alignment, size_t size) mi_attr_noexcept mi_attr_malloc mi_attr_alloc_size(2) mi_attr_alloc_align(1);
-mi_decl_nodiscard mi_decl_restrict void* mi_secure_valloc(size_t size)  mi_attr_noexcept mi_attr_malloc mi_attr_alloc_size(1);
-mi_decl_nodiscard mi_decl_restrict void* mi_secure_pvalloc(size_t size) mi_attr_noexcept mi_attr_malloc mi_attr_alloc_size(1);
-mi_decl_nodiscard mi_decl_restrict void* mi_secure_aligned_alloc(size_t alignment, size_t size) mi_attr_noexcept mi_attr_malloc mi_attr_alloc_size(2) mi_attr_alloc_align(1);
-mi_decl_nodiscard size_t mi_secure_malloc_usable_size(const void* p) mi_attr_noexcept;
-void mi_secure_collect(bool force)    mi_attr_noexcept;
-void mi_secure_option_set(mi_option_t option, long value);
 
 #ifdef __cplusplus
 }

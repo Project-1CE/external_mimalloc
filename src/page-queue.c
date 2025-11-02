@@ -101,15 +101,9 @@ size_t _mi_bin(size_t size) {
   return mi_bin(size);
 }
 
-#ifndef MI_really_secure
 size_t _mi_bin_size(size_t bin) {
   return _mi_heap_empty.pages[bin].block_size;
 }
-#else
-size_t _mi_bin_size(size_t bin) {
-  return _mi_secure_heap_empty.pages[bin].block_size;
-}
-#endif
 
 // Good size for allocation
 size_t mi_good_size(size_t size) mi_attr_noexcept {
@@ -180,11 +174,7 @@ static inline void mi_heap_queue_first_update(mi_heap_t* heap, const mi_page_que
   if (size > MI_SMALL_SIZE_MAX) return;
 
   mi_page_t* page = pq->first;
-#ifndef MI_really_secure
   if (pq->first == NULL) page = (mi_page_t*)&_mi_page_empty;
-#else
-  if (pq->first == NULL) page = (mi_page_t*)&_mi_secure_page_empty;
-#endif
 
   // find index in the right direct page array
   size_t start;

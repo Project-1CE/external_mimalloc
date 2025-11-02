@@ -292,11 +292,7 @@ static mi_decl_noinline void* mi_arena_try_alloc_at(mi_arena_t* arena, size_t ar
     if (!memid->initially_committed && already_committed > 0) {
       // partially committed: as it will be committed at some time, adjust the stats and pretend the range is fully uncommitted.
       mi_assert_internal(already_committed < needed_bcount);
-#ifndef MI_really_secure
       _mi_stat_decrease(&_mi_stats_main.committed, mi_arena_block_size(already_committed));
-#else
-      _mi_stat_decrease(&_mi_secure_stats_main.committed, mi_arena_block_size(already_committed));
-#endif
       _mi_bitmap_unclaim_across(arena->blocks_committed, arena->field_count, needed_bcount, bitmap_index);
     }
   }
@@ -570,11 +566,7 @@ static bool mi_arena_try_purge(mi_arena_t* arena, mi_msecs_t now, bool force)
 
   // reset expire (if not already set concurrently)
   mi_atomic_casi64_strong_acq_rel(&arena->purge_expire, &expire, (mi_msecs_t)0);
-#ifndef MI_really_secure
   _mi_stat_counter_increase(&_mi_stats_main.arena_purges, 1);
-#else
-  _mi_stat_counter_increase(&_mi_secure_stats_main.arena_purges, 1);
-#endif
 
   // potential purges scheduled, walk through the bitmap
   bool any_purged = false;
@@ -681,11 +673,7 @@ void _mi_arena_free(void* p, size_t size, size_t committed_size, mi_memid_t memi
     // was a direct OS allocation, pass through
     if (!all_committed && decommitted_size > 0) {
       // if partially committed, adjust the committed stats (as `_mi_os_free` will decrease commit by the full size)
-#ifndef MI_really_secure
       _mi_stat_increase(&_mi_stats_main.committed, decommitted_size);
-#else
-      _mi_stat_increase(&_mi_secure_stats_main.committed, decommitted_size);
-#endif
     }
     _mi_os_free(p, size, memid);
   }
@@ -725,11 +713,7 @@ void _mi_arena_free(void* p, size_t size, size_t committed_size, mi_memid_t memi
         //if (committed_size > 0) {
           // if partially committed, adjust the committed stats (is it will be recommitted when re-using)
           // in the delayed purge, we do no longer decrease the commit if the range is not marked entirely as committed.
-#ifndef MI_really_secure
           _mi_stat_decrease(&_mi_stats_main.committed, committed_size);
-#else
-          _mi_stat_decrease(&_mi_secure_stats_main.committed, committed_size);
-#endif
         //}
         // note: if not all committed, it may be that the purge will reset/decommit the entire range
         // that contains already decommitted parts. Since purge consistently uses reset or decommit that
@@ -888,11 +872,7 @@ static bool mi_manage_os_memory_ex2(void* start, size_t size, bool is_large, int
     mi_bitmap_index_t postidx = mi_bitmap_index_create(fields - 1, MI_BITMAP_FIELD_BITS - post);
     _mi_bitmap_claim(arena->blocks_inuse, fields, post, postidx, NULL);
   }
-#ifndef MI_really_secure
   return mi_arena_add(arena, arena_id, &_mi_stats_main);
-#else
-  return mi_arena_add(arena, arena_id, &_mi_secure_stats_main);
-#endif
 
 }
 

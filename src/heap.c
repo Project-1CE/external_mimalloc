@@ -190,9 +190,6 @@ void mi_heap_collect(mi_heap_t* heap, bool force) mi_attr_noexcept {
 void mi_collect(bool force) mi_attr_noexcept {
   mi_heap_collect(mi_prim_get_default_heap(), force);
 }
-#ifdef MI_really_secure
-void mi_secure_collect(bool force) mi_attr_noexcept __attribute__((alias("mi_collect")));
-#endif
 
 
 /* -----------------------------------------------------------
@@ -219,11 +216,7 @@ mi_heap_t* mi_heap_get_backing(void) {
 }
 
 void _mi_heap_init(mi_heap_t* heap, mi_tld_t* tld, mi_arena_id_t arena_id, bool noreclaim, uint8_t tag) {
-#ifndef MI_really_secure
   _mi_memcpy_aligned(heap, &_mi_heap_empty, sizeof(mi_heap_t));
-#else
-  _mi_memcpy_aligned(heap, &_mi_secure_heap_empty, sizeof(mi_heap_t));
-#endif
   heap->tld = tld;
   heap->thread_id  = _mi_thread_id();
   heap->arena_id   = arena_id;
@@ -276,11 +269,7 @@ static void mi_heap_reset_pages(mi_heap_t* heap) {
   mi_assert_internal(mi_heap_is_initialized(heap));
   // TODO: copy full empty heap instead?
   memset(&heap->pages_free_direct, 0, sizeof(heap->pages_free_direct));
-#ifndef MI_really_secure
   _mi_memcpy_aligned(&heap->pages, &_mi_heap_empty.pages, sizeof(heap->pages));
-#else
-  _mi_memcpy_aligned(&heap->pages, &_mi_secure_heap_empty.pages, sizeof(heap->pages));
-#endif
   heap->thread_delayed_free = NULL;
   heap->page_count = 0;
 }

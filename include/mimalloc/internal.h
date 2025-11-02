@@ -133,14 +133,8 @@ mi_decl_internal uintptr_t   _mi_os_random_weak(uintptr_t extra_seed);
 static inline uintptr_t _mi_random_shuffle(uintptr_t x);
 
 // init.c
-#ifndef MI_really_secure
 extern mi_decl_hidden mi_decl_cache_align mi_stats_t       _mi_stats_main;
 extern mi_decl_hidden mi_decl_cache_align const mi_page_t  _mi_page_empty;
-#else
-extern mi_decl_hidden mi_decl_cache_align mi_stats_t       _mi_secure_stats_main;
-extern mi_decl_hidden mi_decl_cache_align const mi_page_t  _mi_secure_page_empty;
-#endif
-
 mi_decl_internal void        _mi_auto_process_init(void);
 mi_decl_internal void mi_cdecl _mi_auto_process_done(void) mi_attr_noexcept;
 mi_decl_internal bool        _mi_is_redirected(void);
@@ -497,12 +491,11 @@ static inline bool mi_count_size_overflow(size_t count, size_t size, size_t* tot
   Heap functions
 ------------------------------------------------------------------------------------------- */
 
+extern mi_decl_hidden const mi_heap_t _mi_heap_empty;  // read-only empty heap, initial value of the thread local default heap
+
 static inline bool mi_heap_is_backing(const mi_heap_t* heap) {
   return (heap->tld->heap_backing == heap);
 }
-
-#ifndef MI_really_secure
-extern mi_decl_hidden const mi_heap_t _mi_heap_empty;  // read-only empty heap, initial value of the thread local default heap
 
 static inline bool mi_heap_is_initialized(mi_heap_t* heap) {
   mi_assert_internal(heap != NULL);
@@ -514,20 +507,6 @@ static inline uintptr_t _mi_ptr_cookie(const void* p) {
   mi_assert_internal(_mi_heap_main.cookie != 0);
   return ((uintptr_t)p ^ _mi_heap_main.cookie);
 }
-#else
-extern mi_decl_hidden const mi_heap_t _mi_secure_heap_empty;  // read-only empty heap, initial value of the thread local default heap
-
-static inline bool mi_heap_is_initialized(mi_heap_t* heap) {
-  mi_assert_internal(heap != NULL);
-  return (heap != NULL && heap != &_mi_secure_heap_empty);
-}
-
-static inline uintptr_t _mi_ptr_cookie(const void* p) {
-  extern mi_decl_hidden mi_heap_t _mi_secure_heap_main;
-  mi_assert_internal(_mi_secure_heap_main.cookie != 0);
-  return ((uintptr_t)p ^ _mi_secure_heap_main.cookie);
-}
-#endif
 
 /* -----------------------------------------------------------
   Pages

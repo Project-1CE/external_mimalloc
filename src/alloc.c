@@ -204,9 +204,6 @@ mi_decl_nodiscard extern inline mi_decl_restrict void* mi_heap_malloc(mi_heap_t*
 mi_decl_nodiscard extern inline mi_decl_restrict void* mi_malloc(size_t size) mi_attr_noexcept {
   return mi_heap_malloc(mi_prim_get_default_heap(), size);
 }
-#ifdef MI_really_secure
-mi_decl_nodiscard void* mi_secure_malloc(size_t) mi_attr_noexcept __attribute__((alias("mi_malloc")));
-#endif
 
 // zero initialized small block
 mi_decl_nodiscard mi_decl_restrict void* mi_zalloc_small(size_t size) mi_attr_noexcept {
@@ -231,9 +228,6 @@ mi_decl_nodiscard extern inline mi_decl_restrict void* mi_heap_calloc(mi_heap_t*
 mi_decl_nodiscard mi_decl_restrict void* mi_calloc(size_t count, size_t size) mi_attr_noexcept {
   return mi_heap_calloc(mi_prim_get_default_heap(),count,size);
 }
-#ifdef MI_really_secure
-mi_decl_nodiscard void* mi_secure_calloc(size_t, size_t) mi_attr_noexcept __attribute__((alias("mi_calloc")));
-#endif
 
 // Uninitialized `calloc`
 mi_decl_nodiscard extern mi_decl_restrict void* mi_heap_mallocn(mi_heap_t* heap, size_t count, size_t size) mi_attr_noexcept {
@@ -324,9 +318,6 @@ mi_decl_nodiscard void* mi_heap_recalloc(mi_heap_t* heap, void* p, size_t count,
 mi_decl_nodiscard void* mi_realloc(void* p, size_t newsize) mi_attr_noexcept {
   return mi_heap_realloc(mi_prim_get_default_heap(),p,newsize);
 }
-#ifdef MI_really_secure
-mi_decl_nodiscard void* mi_secure_realloc(void*, size_t) mi_attr_noexcept __attribute__((alias("mi_realloc")));
-#endif
 
 mi_decl_nodiscard void* mi_reallocn(void* p, size_t count, size_t size) mi_attr_noexcept {
   return mi_heap_reallocn(mi_prim_get_default_heap(),p,count,size);

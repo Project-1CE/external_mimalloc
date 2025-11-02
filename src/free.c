@@ -172,9 +172,6 @@ void mi_free(void* p) mi_attr_noexcept
     mi_free_generic_mt(page, segment, p);
   }
 }
-#ifdef MI_really_secure
-void mi_secure_free(void*) mi_attr_noexcept __attribute__((alias("mi_free")));
-#endif
 
 // return true if successful
 bool _mi_free_delayed_block(mi_block_t* block) {
@@ -261,11 +258,7 @@ static void mi_decl_noinline mi_free_block_mt(mi_page_t* page, mi_segment_t* seg
       segment->page_kind != MI_PAGE_HUGE &&
       #endif
       mi_atomic_load_relaxed(&segment->thread_id) == 0 &&  // segment is abandoned?
-#ifndef MI_really_secure
       mi_prim_get_default_heap() != (mi_heap_t*)&_mi_heap_empty) // and we did not already exit this thread (without this check, a fresh heap will be initalized (issue #944))
-#else
-      mi_prim_get_default_heap() != (mi_heap_t*)&_mi_secure_heap_empty) // and we did not already exit this thread (without this check, a fresh heap will be initalized (issue #944))
-#endif
   {
     // the segment is abandoned, try to reclaim it into our heap
     if (_mi_segment_attempt_reclaim(mi_heap_get_default(), segment)) {

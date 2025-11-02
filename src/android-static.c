@@ -16,10 +16,6 @@
 
 #define MI_BIONIC 1
 
-#if defined(MI_SECURE) && (MI_SECURE >= 3)
-#define MI_really_secure 1
-#endif
-
 #include "mimalloc.h"
 #include "mimalloc/internal.h"
 
