@@ -59,7 +59,7 @@ static mi_option_desc_t options[_mi_option_last] =
   { 0, MI_OPTION_LEGACY(abandoned_page_purge,abandoned_page_reset) }, // reset free page memory when a thread terminates
   { 0, MI_OPTION(deprecated_segment_reset) },   // reset segment memory on free (needs eager commit)
   { 1, MI_OPTION(eager_commit_delay) },         // the first N segments per thread are not eagerly committed (but per page in the segment on demand)
-  { 10, MI_OPTION_LEGACY(purge_delay,reset_delay) }, // purge delay in milli-seconds
+  { 100, MI_OPTION_LEGACY(purge_delay,reset_delay) }, // purge delay in milli-seconds
   { 0, MI_OPTION(use_numa_nodes) },             // 0 = use available numa nodes, otherwise use at most N nodes.
   { 0, MI_OPTION_LEGACY(disallow_os_alloc,limit_os_alloc) }, // 1 = do not use OS memory for allocation (but only reserved arenas)
   { 100, MI_OPTION(os_tag) },                   // only apple specific for now but might serve more or less related purpose
@@ -128,8 +128,6 @@ void mi_option_set(mi_option_t option, long value) {
   if (option != mi_option_purge_delay) return;
   mi_option_desc_t* desc = &options[option];
   mi_assert(desc->option == option);  // index should match the option
-  if (value > 0)
-    value = 10;
   desc->value = value;
 }
 

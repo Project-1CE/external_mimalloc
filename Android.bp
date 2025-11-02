@@ -41,6 +41,7 @@ cc_defaults {
         "-DNDEBUG",
         //"-DMI_DEBUG=3",
         "-DMI_SECURE=4",
+        "-DMI_PADDING=0",
         "-fPIC",
         "-Wall",
         "-Wextra",
